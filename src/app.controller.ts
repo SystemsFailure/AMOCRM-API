@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Post, Param } from '@nestjs/common';
+import { Controller, Get, Req, Post, Param, Patch } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiService } from './services/api.service';
 
@@ -11,17 +11,15 @@ export class AppController {
     ) {}
 
   // Главный запрос, решил передавать данные через параметры, не через тело запроса
-  @Get('findContact/:phone')
-  async getContact(
+  @Get('findContact/:email/:name/:phone')
+  async get(
       @Param('email') email: string, 
       @Param('name') name: string,
       @Param('phone') phone: string,
     ) : Promise<string> {
-      const contacts = await this.apiService.getContacts({email: email, name: name, phone: phone});
+      const contacts = await this.apiService.getContact({email: email, name: name, phone: phone});
       return JSON.stringify(contacts);
   };
-
-
   // Не используется, (тестил)
   // Пост запрос для создания контакта с полями (имя, почта, телефон)
   @Post()

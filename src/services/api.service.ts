@@ -2,40 +2,103 @@ import { Injectable } from "@nestjs/common";
 import axios from "axios";
 import process, { env } from "process";
 import ContactQuerys from "src/types/requests.type";
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ApiService {
-    constructor() {};
+    constructor(private readonly runtime: ConfigService) {
+        // no code
+    };
 
-
-    private async createContact(data) : Promise<void> {
+    private async createContact(data) : Promise<any> {
         const {name, email, phone} = data;
+        // надо было создать класс и переиспользовать его, но времени уже не было, извините => я пойду на против принцыпа DRY и повторюсь
+        const requestData = 
+            {            
+                name: name,
+                custom_fields_values: [
+                    {
+                        field_name: 'Телефон',
+                        field_code: 'PHONE',
+                        field_type: 'multitext',
+                        values: [{value:phone, enum_code:'WORK'}]
+    
+                    },
+                    {
+                        field_name: 'Email',
+                        field_code: 'EMAIL',
+                        field_type: 'multitext',
+                        values: [{value:email, enum_code:'WORK'}]
+                    },
+                ]
+        };
         try {
-            const response = await axios.post(process.env.baseURL + '/api/v4/contact')
+            const response = await axios.post(this.runtime.get<string>('amoCRM.url') + '/api/v4/contacts', {requestData})
+            // Здесь создаем сделку и возвращаем ответ
+            return response;
         }
         catch(error) {
             console.log(error);
         }
     };
 
-    private async updateFields(data: ContactQuerys) : Promise<void> {
-        const baseURL = env.accessToken_amoCRM || 'https://allistirking422.amocrm.ru';
-        const accessToken = env.BaseURL_amoCRM || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjAzYjhjZTgyOTVhYmIyMDRkNjAxZjYyYmY3MWYyZWU2N2FkNjY4MDY5MDcyZDJhZTIwZTY2OWY2MDlmODY2NDQwODUxZjJmYWU5NzJjYmNmIn0.eyJhdWQiOiJhZWUzNDBlYy04YWJlLTQ0MjUtYWQyMC0xNGNkMjA0YmU5MDUiLCJqdGkiOiIwM2I4Y2U4Mjk1YWJiMjA0ZDYwMWY2MmJmNzFmMmVlNjdhZDY2ODA2OTA3MmQyYWUyMGU2NjlmNjA5Zjg2NjQ0MDg1MWYyZmFlOTcyY2JjZiIsImlhdCI6MTY5NDQzMzQ2MSwibmJmIjoxNjk0NDMzNDYxLCJleHAiOjE2OTQ1MTk4NjEsInN1YiI6IjEwMDcyMDg2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxMjg3OTkwLCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOiJ2MiIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiXX0.TfQplKCQ3U9_1bf1mk9DCZFpErIFcms9Ar4eL5YVg0-hVop7Ue4neskDuwaH57AIS2Xk30Aj9DNcW0nmThuZos2DhAqbCOfpuhCivhPQXM4Bs90iTcYX-yOhjt0i4FNkhkjO4HRpQxCSd8lgX8liWo-IgMXdtmfpgWe48gNvEusmZVUAqHJ8q9ryE1rAqnJTy6_Sr42FagFr-fxEgUlWUOKNOoUdmNzYNyKeI1-Yl4wL1c56QPAPGcjHvYIaQKq-EVH-xP0j6EOWt3CKtlrqHea97eGOWhDud1_UElyrEna9SGEFYy1ggR51Lo_1PdkHCg-9Tmmp4mJh9zpUC4MoWQ';
-        console.log(baseURL);
+    private async updateFields(data: ContactQuerys, id: number) : Promise<any> {
+        const {name, email, phone} = data;
+        const requestData = 
+            {        
+                id: id,
+                name: name,
+                custom_fields_values: [
+                    {
+                        field_name: "Телефон",
+                        field_code: "PHONE",
+                  
+                        values: [
+                          {
+                            value: phone,
+                            enum_code: "WORK"
+                          }
+                        ]
+                    },
+                    {
+                        field_name: 'Email',
+                        field_code: 'EMAIL',
+                        values: [{value:email, enum_code:'WORK'}]
+                    },
+                ]
+        };
+        console.log('requestData', requestData);
+        try {
+            const response = await axios.patch(this.runtime.get<string>('amoCRM.url') + '/api/v4/contacts', {requestData})
+            console.log(response.status);
+            // Здесь создаем сделку и возвращаем ответ
+            return response;
+        }
+        catch(error) {
+            console.log(error);
+        }
     };
 
 
     // Не используется
-    async getContacts(data: ContactQuerys) : Promise<any> {
-        const Access_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjAzYjhjZTgyOTVhYmIyMDRkNjAxZjYyYmY3MWYyZWU2N2FkNjY4MDY5MDcyZDJhZTIwZTY2OWY2MDlmODY2NDQwODUxZjJmYWU5NzJjYmNmIn0.eyJhdWQiOiJhZWUzNDBlYy04YWJlLTQ0MjUtYWQyMC0xNGNkMjA0YmU5MDUiLCJqdGkiOiIwM2I4Y2U4Mjk1YWJiMjA0ZDYwMWY2MmJmNzFmMmVlNjdhZDY2ODA2OTA3MmQyYWUyMGU2NjlmNjA5Zjg2NjQ0MDg1MWYyZmFlOTcyY2JjZiIsImlhdCI6MTY5NDQzMzQ2MSwibmJmIjoxNjk0NDMzNDYxLCJleHAiOjE2OTQ1MTk4NjEsInN1YiI6IjEwMDcyMDg2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxMjg3OTkwLCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOiJ2MiIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiXX0.TfQplKCQ3U9_1bf1mk9DCZFpErIFcms9Ar4eL5YVg0-hVop7Ue4neskDuwaH57AIS2Xk30Aj9DNcW0nmThuZos2DhAqbCOfpuhCivhPQXM4Bs90iTcYX-yOhjt0i4FNkhkjO4HRpQxCSd8lgX8liWo-IgMXdtmfpgWe48gNvEusmZVUAqHJ8q9ryE1rAqnJTy6_Sr42FagFr-fxEgUlWUOKNOoUdmNzYNyKeI1-Yl4wL1c56QPAPGcjHvYIaQKq-EVH-xP0j6EOWt3CKtlrqHea97eGOWhDud1_UElyrEna9SGEFYy1ggR51Lo_1PdkHCg-9Tmmp4mJh9zpUC4MoWQ';
-        axios.defaults.headers.common['Authorization'] = `Bearer ${Access_token}`;
+    async getContact(data: ContactQuerys) : Promise<any> {
+        console.log(this.runtime.get<string>('amoCRM.url'));
+        // Временный токен, если забыл удалить, изыините)
+        // Установка заголовков в axios для всех последующих запросов
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.runtime.get<string>('amoCRM.token')}`;
+        // параметры из вне (имя, почта, телефон)
         const {name, email, phone} = data;
+        // Обработка ощибок (примитив)
         try {
+            // простой get запрос к amoCRM
             const content = await axios.get('https://allistirking422.amocrm.ru' + `/api/v4/contacts?query=${phone}`);
+            // Здесь - проверка через статус код 204 (нет контентан), 
+            // если нету данных => нету мы создаем с переданными параметрами, если есть, то обновляю и делаю сделку
             if(content.status != 204) {
+                await this.updateFields(data, content.data._embedded.contacts[0].id);
                 return content?.data?._embedded?.contacts;
             } else {
-                console.log(content.status);
+                const result = await this.createContact(data);
             }
         } catch (error) {
             console.log(error);
