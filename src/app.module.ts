@@ -5,6 +5,7 @@ import { ApiService } from './services/api.service';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './common/env';
 
+// Настройка основного модуля
 @Module({
   imports: [
     ConfigModule.forRoot({

@@ -20,10 +20,4 @@ export class AppController {
       const contacts = await this.apiService.getContact({email: email, name: name, phone: phone});
       return JSON.stringify(contacts);
   };
-  // Не используется, (тестил)
-  // Пост запрос для создания контакта с полями (имя, почта, телефон)
-  @Post()
-  async createContact(@Req() req): Promise<{}> {
-    return {body: req.body, headers: req.headers};
-  }
 }
