@@ -127,7 +127,7 @@ export class ApiService {
                     const result_update = await this.updateFields(data, content.data._embedded.contacts[0].id); // id = идентификатор найденного клиента
                     if(result_update.status === CODE_SUCCESS) {
                         // При успешном обновлении данных создаем сделку
-                        await this.createDeal(content.data._embedded.contacts[0]);
+                        await this.createDeal(content?.data?._embedded?.contacts[0]);
                         // возврат массива найденного контакта
                         return {contacts: content?.data?._embedded?.contacts, result: 'Успешное обновление данных и создание сделки', boolResult: true};
                     } else {
@@ -138,10 +138,13 @@ export class ApiService {
                 }
             } else {
                 // если клиент не найден, то создаем его
-                await this.createContact(data);
-                // создаем сделку
-                await this.createDeal(content.data._embedded.contacts[0]);
-                return 'Пользователь успешно создан, сделка успешно заключина' 
+                const response = await this.createContact(data);
+                if(response.status === CODE_SUCCESS) {
+                    await this.createDeal(response?.data?._embedded?.contacts[0]);
+                    return 'Пользователь успешно создан, сделка успешно заключина' 
+                } else {
+                    return 'Статус ответа отличен он 200, клиент создан, сделка не состоялась'
+                }
             }
         } catch (error) {
             console.log(error);
